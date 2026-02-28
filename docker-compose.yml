@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: spin_pg
+    restart: always
+    environment:
+      POSTGRES_USER: spin
+      POSTGRES_PASSWORD: spin
+      POSTGRES_DB: spindb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db:/docker-entrypoint-initdb.d 
+
+  backend:
+    build: ./backend
+    container_name: spin_backend
+    depends_on:
+      - db
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgres://spin:spin@db:5432/spindb
+      PORT: 3001
+
+    
+    command: sh -c "npm run build && node dist/index.js"
+
+volumes:
+  pgdata:
